@@ -26,6 +26,7 @@ Before using this pipeline, ensure the following are set up:
 ## Project Structure
 
 The repository should follow a structure similar to this:
+```
 .
 ├── .github/
 │   └── workflows/
@@ -41,7 +42,7 @@ The repository should follow a structure similar to this:
 ├── requirements.txt        # Scraper Python dependencies (or place in a scripts/ dir)
 ├── scraper.py              # The scraper script
 └── README.md               # This file
-
+```
 ## Configuration
 
 ### 1. GitHub Secrets
