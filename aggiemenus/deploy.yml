@@ -1,0 +1,108 @@
+name: Deploy Aggiemenus
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+
+  deploy-frontend:
+    name: Build Frontend (Docker)
+    runs-on: aggieworks-cicd-sj-1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Frontend Docker image
+        run: |
+          echo "Building frontend Docker image..."
+          docker build -t aggiemenus-frontend:latest ./frontend
+          echo "Frontend image built."
+
+  deploy-backend:
+    name: Build Backend (Docker)
+    runs-on: aggieworks-cicd-sj-1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Backend Docker image
+        run: |
+          echo "Building backend Docker image..."
+          docker build -t aggiemenus-backend:latest ./backend
+          echo "Backend image built."
+
+  deploy-services:
+    name: Deploy Services (Docker Compose)
+    runs-on: aggieworks-cicd-sj-1
+    needs: [deploy-frontend, deploy-backend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Deploy with Docker Compose
+        env:
+          TUNNEL_TOKEN: ${{ secrets.TUNNEL_TOKEN }}
+        run: |
+          echo "Deploying services with Docker Compose..."
+          docker-compose down
+          docker-compose up --build -d
+          echo "Services deployed. Cloudflared should now tunnel traffic to them."
+
+      - name: Prune old Docker images and volumes
+        if: always()
+        run: |
+          echo "Cleaning up unused Docker images and volumes..."
+          docker image prune -af
+          docker volume prune -f
+          echo "Docker cleanup complete."
+
+  run-scraper:
+    name: Run Scraper
+    runs-on: aggieworks-cicd-sj-1
+
+    if: github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install scraper dependencies
+        run: |
+          pip install -r requirements.txt
+          echo "Installing scraper dependencies..."
+
+      - name: Run scraper script
+        run: |
+          echo "Running scraper script..."
+          python3 scraper.py
+          echo "Scraper script executed!"

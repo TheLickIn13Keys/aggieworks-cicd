@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: aggiemenus-frontend:latest
+    container_name: aggiemenus-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - aggiemenus-network
+
+  backend:
+    image: aggiemenus-backend:latest
+    container_name: aggiemenus-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    networks:
+      - aggiemenus-network
+    volumes:
+      - /opt/aggimenus/shared-data:/app/shared_data:ro
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-tunnel
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - aggiemenus-network 
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+
+
+networks:
+  aggiemenus-network:
+    driver: bridge
+
