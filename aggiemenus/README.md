@@ -57,9 +57,8 @@ Navigate to your repository's `Settings` -> `Secrets and variables` -> `Actions`
 
 Configure your tunnel's ingress rules via the Cloudflare Zero Trust dashboard (`Networks` -> `Tunnels` -> Your Tunnel -> `Public Hostnames`):
 
-* Map your desired public hostname(s) for the frontend to the internal Docker service: `http://frontend:3000`
-* Map your desired public hostname(s) for the backend API to the internal Docker service: `http://backend:5000`
-    *(Replace `frontend` and `backend` with the exact service names from `docker-compose.yml` if different, and adjust ports if necessary)*
+* Map your desired public hostname(s) for the frontend to the internal Docker service: `http://aggiemenus-frontend:3000`
+* Map your desired public hostname(s) for the backend API to the internal Docker service: `http://aggiemenus-backend:5000`
 
 ### 3. Dockerfiles
 
